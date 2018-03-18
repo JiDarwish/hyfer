@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-const BASE_URL = 'http://localhost:3005';
+const BASE_URL = 'http://localhost:3000';
 
 //return a promise with `then` getting the json formatted data
 export function getTimelineItems() {
@@ -391,7 +391,7 @@ function _patchNewModuleForOneGroup(
           return Promise.reject(); // maybe to give the user indication that it went wrong
         });
     }
-    if (selectedDateMoment.diff(item.ending_date, 'weeks') === 0) {
+    if (selectedDateMoment.diff(item.ending_date, 'days') === 0) {
       // case 2 the new module is at the end of an existing one (GREAT!)//////////////////////////////////////////////////
       const position = +item.position + 1;
       return _addModule(selectedModuleId, selectedGroupId, position).then(res =>
