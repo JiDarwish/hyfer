@@ -19,7 +19,6 @@ export function setEndingDateForModules(allItems, groups) {
       item.starting_date = moment(lastDate);
 
       if (item.starting_date.day() !== 0) {
-        console.error(item.starting_date.toString());
         item.starting_date.weekday(0);
       }
 
@@ -53,8 +52,6 @@ export function getTeachers() {
 }
 
 export function getWeeksBeforeAndAfter(allWeeks, classModules) {
-  console.log(classModules);
-
   // starting date of the first module of a class
   const firstModuleStartingDate = moment.min(
     classModules.map(week => week.starting_date)
@@ -63,7 +60,6 @@ export function getWeeksBeforeAndAfter(allWeeks, classModules) {
   const lastModuleEndingDate = moment.max(
     classModules.map(week => week.ending_date)
   );
-  console.log('ending', lastModuleEndingDate.toString());
   // get an array with all the weeks before the start of this class
   const weeksBefore = allWeeks.filter(week =>
     week[0].isBefore(firstModuleStartingDate)
@@ -73,7 +69,6 @@ export function getWeeksBeforeAndAfter(allWeeks, classModules) {
   const weeksAfter = allWeeks.filter(week =>
     week[1].isAfter(lastModuleEndingDate)
   );
-  console.log(weeksAfter.map(e => e.toString()));
   return {
     weeksBefore,
     weeksAfter
@@ -328,6 +323,20 @@ function _patchNewModuleForOneGroup(
   const selectedDateMoment = new moment(selectedDate, 'YYYY-MM-DD');
   for (let item of items) {
     // case 1 it is betweeen the staritng and the end! Nasty!!/////////////////////////////////////////////
+    if (selectedDateMoment.diff(item.ending_date, 'days') === 0) {
+      // case 2 the new module is at the end of an existing one (GREAT!)//////////////////////////////////////////////////
+      const position = +item.position + 1;
+      return _addModule(selectedModuleId, selectedGroupId, position).then(res =>
+        _patchGroupsModules(
+          { position },
+          null,
+          duration,
+          null,
+          null,
+          selectedGroupId
+        )
+      );
+    }
     if (selectedDateMoment.isBetween(item.starting_date, item.ending_date)) {
       // step 1 make that module shorter so that the new module could come right after
       const newDuration = _getNewDurationWhenAddingModule(
@@ -390,20 +399,6 @@ function _patchNewModuleForOneGroup(
           console.log(err);
           return Promise.reject(); // maybe to give the user indication that it went wrong
         });
-    }
-    if (selectedDateMoment.diff(item.ending_date, 'days') === 0) {
-      // case 2 the new module is at the end of an existing one (GREAT!)//////////////////////////////////////////////////
-      const position = +item.position + 1;
-      return _addModule(selectedModuleId, selectedGroupId, position).then(res =>
-        _patchGroupsModules(
-          { position },
-          null,
-          duration,
-          null,
-          null,
-          selectedGroupId
-        )
-      );
     }
   }
 }
